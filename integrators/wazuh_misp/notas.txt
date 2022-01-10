@@ -1,0 +1,20 @@
+<integration>
+  <name>custom-misp-integration</name>
+  <hook_url>http://192.168.201.162:8001/</hook_url>
+  <level>10</level>
+  <group>multiple_drops|authentication_failures</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<integration>
+  <name>custom-misp-integration</name>
+  <group>multiple_drops|authentication_failures</group>
+  <hook_url>http://192.168.201.162:8001/events/</hook_url>
+  <api_key>admin@admin.test:zliVClXxIAzjAQqPFpc6J5JqgemhFHYVgAXJ0Uc2</api_key>                      "The API key can be found and managed under My Profile page (/users/view/me) on a MISP instance."
+  <alert_format>json</alert_format>
+</integration>
+
+
+chmod 750 /var/ossec/integrations/custom-misp-integration
+chown root:ossec /var/ossec/integrations/custom-misp-integration
+
