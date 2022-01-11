@@ -23,10 +23,15 @@ alert_file.close()
 
 # Extract issue fields
 date = alert_json['timestamp']
+current_date = date.split("T")[0]
 
 alert_level = alert_json['rule']['level']
 description = alert_json['rule']['description']
 attribute_count = alert_json['rule']['firedtimes']
+
+#Get ip src addr from alert json
+ipaddr = alert_json['data']['srcip']
+comment = alert_json['full_log']
 
 create_event_uuid = str(uuid.uuid4())
 timestamp_millis = int(round(time.time() * 1000))
@@ -42,20 +47,43 @@ else:
 	threat_level_id = 4
 
 # Generate request to create event
+#creating_event_data = {
+#    "org_id": "24", #?? 1 ORGNAME (criar uma?)
+#    "distribution": "0", #Who can see it? My organization |Discutir com  o Freitas
+#    "info": description, #"logged source ip",
+#    "uuid": create_event_uuid,
+#    "date": str(date), #"1991-01-15",
+#    "published": "false",
+#    "analysis": "0", #Initial
+#    "attribute_count": str(attribute_count), #??
+#    "timestamp": str(timestamp_millis),#"1617875568", #Qual ´e este? gerado por n´os?
+#    "threat_level_id": str(threat_level_id), #"1",
+#    "extends_uuid": "", #"c99506a6-1255-4b71-afa5-7b8ba48c3b1b",
+#    "event_creator_email": user} #"user@example.com"}
+
 creating_event_data = {
-    "org_id": "24", #?? 1 ORGNAME (criar uma?)
-    "distribution": "0", #Who can see it? My organization |Discutir com  o Freitas
-    "info": description, #"logged source ip",
-    "uuid": create_event_uuid,
-    "date": date, #"1991-01-15",
-    "published": "false",
-    "analysis": "0", #Initial
-    "attribute_count": attribute_count, #??
-    "timestamp": timestamp_millis,#"1617875568", #Qual ´e este? gerado por n´os?
-    "threat_level_id": threat_level_id, #"1",
-    "extends_uuid": "", #"c99506a6-1255-4b71-afa5-7b8ba48c3b1b",
-    "event_creator_email": user} #"user@example.com"}
-    
+	"Event":
+		{
+		"date": current_date,
+		"threat_level_id": str(threat_level_id),
+		"info": description,
+		"published": False,
+		"analysis":"0", #Initial
+		"distribution":"0", #My organization
+		"Attribute":[
+			{
+			"type":"ip-src",
+			"category": "Network activity",
+			"to_ids": False,
+			"distribution":"0",
+			"comment": comment,
+			"value": ipaddr
+			}
+		]
+		}
+	}
+
+print("Event JSON : ")     
 print(creating_event_data)
 
 headers = {'Accept': 'application/json', 'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': api_key}
@@ -64,31 +92,7 @@ headers = {'Accept': 'application/json', 'content-type': 'application/json', 'Ac
 #create_event_result = requests.post(hook_url, data=json.dumps(creating_event_data), headers=headers, auth=(api_key))
 create_event_result = requests.post(hook_url, data=json.dumps(creating_event_data), headers=headers)
 
+print("Event Result: ")
 print(create_event_result.text)
-
-#Get event ID from response.
-
-#Get ip src addr from alert json
-ipaddr = alert_json['data']['srcip']
-comment = alert_json['full_log']
-
-hook_url = "http://localhost:8001/attributes/add/" + eventId
-
-create_attr_uuid = str(uuid.uuid4())
-timestamp_millis = int(round(time.time() * 1000))
-
-creating_attribute_data = {
-	"event_id": eventId,
-	"category": "Network activity",
-	"type": "ip-src",
-	"value": ipaddr,
-	"to_ids": "true",
-	"uuid": create_attr_uuid,
-	"timestamp": timestamp_millis,
-	"distribution": "0",
-	"comment": comment,
-	"deleted": false}
-	
-create_attribute_result = requests.post(hook_url, data=json.dumps(creating_attribute_data), headers=headers)
  
 sys.exit(0)
