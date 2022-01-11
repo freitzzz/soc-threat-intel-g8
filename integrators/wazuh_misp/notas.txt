@@ -10,7 +10,7 @@
   <name>custom-misp-integration</name>
   <group>multiple_drops|authentication_failures</group>
   <hook_url>http://192.168.201.162:8001/events/</hook_url>
-  <api_key>admin@admin.test:zliVClXxIAzjAQqPFpc6J5JqgemhFHYVgAXJ0Uc2</api_key>                      "The API key can be found and managed under My Profile page (/users/view/me) on a MISP instance."
+  <api_key>group_8@socteam.com:Q6DuRaGCN8TCyqtfUPjlDrHaRnMYSW6y3IKOl6Y3</api_key>                       "The API key can be found and managed under My Profile page (/users/view/me) on a MISP instance."
   <alert_format>json</alert_format>
 </integration>
 
@@ -18,3 +18,34 @@
 chmod 750 /var/ossec/integrations/custom-misp-integration
 chown root:ossec /var/ossec/integrations/custom-misp-integration
 
+
+#original admin
+<api_key>admin@admin.test:zliVClXxIAzjAQqPFpc6J5JqgemhFHYVgAXJ0Uc2</api_key>   
+
+#created_user
+<api_key>group_8@socteam.com:Q6DuRaGCN8TCyqtfUPjlDrHaRnMYSW6y3IKOl6Y3</api_key>   
+
+
+
+Passado_ 110120220025
+
+msg_data = {
+    "org_id": "12345", #?? 1 ORGNAME (criar uma?)
+    "distribution": "0", #Who can see it? My organization |Discutir com  o Freitas
+    "info": description, #"logged source ip",
+    "orgc_id": "12345", #?? 1 ORGNAME (criar uma?)
+    "uuid": uuid, #"c99506a6-1255-4b71-afa5-7b8ba48c3b1b",
+    "date": date, #"1991-01-15",
+    "published": false,
+    "analysis": "0",
+    "attribute_count": "321", #??
+    "timestamp": "1617875568", #Qual ´e este? gerado por n´os?
+    "sharing_group_id": "1", #??
+    "proposal_email_lock": true, #??
+    "locked": true, #??
+    "threat_level_id": alert_level, #"1",
+    "publish_timestamp": "1617875568",
+    "sighting_timestamp": "1617875568",
+    "disable_correlation": false, #??
+    "extends_uuid": uuid, #"c99506a6-1255-4b71-afa5-7b8ba48c3b1b",
+    "event_creator_email": user} #"user@example.com"}
