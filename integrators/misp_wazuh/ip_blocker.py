@@ -1,6 +1,7 @@
 import base64
 from logging import log
 import logging
+from typing import List
 import requests
 import urllib3
 
@@ -32,7 +33,7 @@ def exec_http_request(host: str, port: str, ssl: bool, endpoint: str, verb: str,
 
     url = '{}://{}:{}/{}'.format(http_proto, host, port, endpoint)
 
-    return requests.request(method=verb, url=url, headers=headers, data=body, verify=verify_ssl)
+    return requests.request(method=verb, url=url, headers=headers, json=body, verify=verify_ssl)
 
 
 def exec_misp_api_request(mapiconfig: dict, endpoint: str, verb: str,
@@ -58,12 +59,12 @@ def exec_wazuh_api_request(wazuhapiconfig: dict, endpoint: str, verb: str,
 
     _headers['Content-Type'] = 'application/json'
 
-    if wazuh_api_config['auth'] != None:
-        _headers['Authorization'] = wazuh_api_config['auth']
+    if wazuhapiconfig['auth'] != None:
+        _headers['Authorization'] = 'Bearer {}'.format(wazuhapiconfig['auth'])
 
     return exec_http_request(body=body, endpoint=endpoint, headers=_headers,
-                             host=wazuh_api_config['host'], port=wazuh_api_config['port'],
-                             ssl=wazuh_api_config['secure'], verb=verb, verify_ssl=False
+                             host=wazuhapiconfig['host'], port=wazuhapiconfig['port'],
+                             ssl=wazuhapiconfig['secure'], verb=verb, verify_ssl=False,
                              )
 
 
@@ -94,24 +95,55 @@ def get_wazuh_auth_token(wazuhapiconfig: dict):
 
     response_body = request_exec.json()
 
-    print(response_body)
-
     if request_exec.status_code == 200:
         return response_body['data']['token']
     else:
         return None
 
 
-def publish_events(wazuhapiconfig: dict, events: list):
+def exec_wazuh_comand(wazuhapiconfig: dict, command_config: dict):
+
+    request_exec = exec_wazuh_api_request(endpoint='active-response',
+                                          verb='PUT',
+                                          wazuhapiconfig=wazuhapiconfig,
+                                          body=command_config,
+                                          )
+
+    response_body = request_exec.json()
+
+    return response_body
+
+
+def publish_ip_block_from_events(wazuhapiconfig: dict, events: list):
     new_events = [x for x in events if x not in already_published_events]
 
     already_published_events.extend(new_events)
 
+    for event in new_events:
+        event_tags = event['EventTag']
+
+        if event_tags is list:
+            for tag in event_tags:
+                if 'botnet' in tag['Tag']['name'] or 'botnet' in tag['Tag']['type']:
+                    src_ip = ""
+                    comand_exec_response = exec_wazuh_comand(command_config={
+                        {
+                            "command": "firewall-drop",
+                            "alert": {
+                                "data": {
+                                    "srcip": src_ip
+                                },
+                            },
+                        }
+                    },
+                        wazuhapiconfig=wazuhapiconfig
+                    )
+
+                    logging.info(comand_exec_response)
+
 
 def main():
-    # events = get_last_events(mapiconfig=misp_api_config)
-
-    # publish_events(events=events)
+    events = get_last_events(mapiconfig=misp_api_config)
 
     wazuh_token = get_wazuh_auth_token(wazuhapiconfig=wazuh_api_config)
 
@@ -120,6 +152,18 @@ def main():
         exit(-1)
 
     wazuh_api_config['auth'] = wazuh_token
+
+    publish_ip_block_from_events(
+        wazuhapiconfig=wazuh_api_config, events=events
+    )
+
+    # comand_exec_response = exec_wazuh_comand(command_config={
+    #     {"command": "firewall-drop30", "alert": {"data": {"srcip": "1.1.1.5"}, }, }
+    # },
+    #     wazuhapiconfig=wazuh_api_config
+    # )
+
+    # print(comand_exec_response)
 
 
 if __name__ == "__main__":
