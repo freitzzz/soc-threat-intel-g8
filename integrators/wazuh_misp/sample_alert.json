@@ -1,0 +1,78 @@
+{
+        "timestamp": "2022-01-11T00:22:31.079+0000",
+        "rule": {
+            "level": 5,
+            "description": "sshd: Attempt to login using a non-existent user",
+            "id": "5710",
+            "mitre": {
+                "id": [
+                    "T1110"
+                ],
+                "tactic": [
+                    "Credential Access"
+                ],
+                "technique": [
+                    "Brute Force"
+                ]
+            },
+            "firedtimes": 1,
+            "mail": false,
+            "groups": [
+                "syslog",
+                "sshd",
+                "invalid_login",
+                "authentication_failed"
+            ],
+            "pci_dss": [
+                "10.2.4",
+                "10.2.5",
+                "10.6.1"
+            ],
+            "gpg13": [
+                "7.1"
+            ],
+            "gdpr": [
+                "IV_35.7.d",
+                "IV_32.2"
+            ],
+            "hipaa": [
+                "164.312.b"
+            ],
+            "nist_800_53": [
+                "AU.14",
+                "AC.7",
+                "AU.6"
+            ],
+            "tsc": [
+                "CC6.1",
+                "CC6.8",
+                "CC7.2",
+                "CC7.3"
+            ]
+        },
+        "agent": {
+            "id": "002",
+            "name": "dory-host",
+            "ip": "192.168.201.160"
+        },
+        "manager": {
+            "name": "wazuh-manager"
+        },
+        "id": "1641860551.252587",
+        "full_log": "Jan 11 00:22:30 dory sshd[419399]: Invalid user kevin2 from 192.168.201.1 port 56771",
+        "predecoder": {
+            "program_name": "sshd",
+            "timestamp": "Jan 11 00:22:30",
+            "hostname": "dory"
+        },
+        "decoder": {
+            "parent": "sshd",
+            "name": "sshd"
+        },
+        "data": {
+            "srcip": "192.168.201.1",
+            "srcport": "56771",
+            "srcuser": "kevin2"
+        },
+        "location": "/var/log/auth.log"
+}
