@@ -13,6 +13,8 @@ user = sys.argv[4].split(':')[0]
 api_key = sys.argv[4].split(':')[1]
 hook_url = sys.argv[3]
 
+request_url = hook_url + "/events/add"
+
 # Read the alert file
 alert_json = json.loads(alert_file.read())
 alert_file.close()
@@ -64,6 +66,6 @@ creating_event_data = {
 headers = {'Accept': 'application/json', 'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': api_key}
 
 # Send the request
-create_event_result = requests.post(hook_url, data=json.dumps(creating_event_data), headers=headers)
+create_event_result = requests.post(request_url, data=json.dumps(creating_event_data), headers=headers)
  
 sys.exit(0)

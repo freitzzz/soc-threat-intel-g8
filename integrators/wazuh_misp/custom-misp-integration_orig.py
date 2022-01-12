@@ -15,7 +15,11 @@ import time
 alert_file = open("sample_alert.json")
 user = "group_8@socteam.com"
 api_key = "T9V1gzrDtuY7VW0VjtBJ3FeTfJV4880XNUMpd5vn"
-hook_url = "http://localhost:8001/events/add"
+hook_url = "http://localhost:8001"
+
+request_url = hook_url + "/events/add"
+
+print(request_url)
 
 # Read the alert file
 alert_json = json.loads(alert_file.read())
@@ -89,7 +93,7 @@ print(creating_event_data)
 headers = {'Accept': 'application/json', 'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': api_key}
 
 # Send the request
-create_event_result = requests.post(hook_url, data=json.dumps(creating_event_data), headers=headers)
+create_event_result = requests.post(request_url, data=json.dumps(creating_event_data), headers=headers)
 
 print("Event Result: ")
 print(create_event_result.text)
