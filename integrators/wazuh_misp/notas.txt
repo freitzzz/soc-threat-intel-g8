@@ -10,7 +10,7 @@
   <name>custom-misp-integration</name>
   <group>multiple_drops|authentication_failures</group>
   <hook_url>http://192.168.201.162:8001/events/</hook_url>
-  <api_key>group_8@socteam.com:Q6DuRaGCN8TCyqtfUPjlDrHaRnMYSW6y3IKOl6Y3</api_key>                       "The API key can be found and managed under My Profile page (/users/view/me) on a MISP instance."
+  <api_key>group_8@socteam.com:T9V1gzrDtuY7VW0VjtBJ3FeTfJV4880XNUMpd5vn</api_key>                       "The API key can be found and managed under My Profile page (/users/view/me) on a MISP instance."
   <alert_format>json</alert_format>
 </integration>
 
