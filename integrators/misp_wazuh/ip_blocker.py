@@ -128,12 +128,14 @@ def publish_ip_block_from_events(wazuhapiconfig: dict, events: list):
                     src_ip = ""
                     comand_exec_response = exec_wazuh_comand(command_config={
                         {
-                            "command": "firewall-drop",
+                            "command": "!firewall-drop",
                             "alert": {
                                 "data": {
                                     "srcip": src_ip
                                 },
                             },
+                            "arguments": ["add", "reject"],
+                            "custom": False
                         }
                     },
                         wazuhapiconfig=wazuhapiconfig
@@ -143,7 +145,7 @@ def publish_ip_block_from_events(wazuhapiconfig: dict, events: list):
 
 
 def main():
-    events = get_last_events(mapiconfig=misp_api_config)
+    # events = get_last_events(mapiconfig=misp_api_config)
 
     wazuh_token = get_wazuh_auth_token(wazuhapiconfig=wazuh_api_config)
 
@@ -153,12 +155,12 @@ def main():
 
     wazuh_api_config['auth'] = wazuh_token
 
-    publish_ip_block_from_events(
-        wazuhapiconfig=wazuh_api_config, events=events
-    )
+    # publish_ip_block_from_events(
+    #     wazuhapiconfig=wazuh_api_config, events=events
+    # )
 
     # comand_exec_response = exec_wazuh_comand(command_config={
-    #     {"command": "firewall-drop30", "alert": {"data": {"srcip": "1.1.1.5"}, }, }
+    #     {"comman": "firewall-drop", "alert": {"data": {"srcip": "1.1.1.5"}, }, }
     # },
     #     wazuhapiconfig=wazuh_api_config
     # )
