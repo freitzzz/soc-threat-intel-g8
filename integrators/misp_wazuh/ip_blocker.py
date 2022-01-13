@@ -1,6 +1,7 @@
 import base64
 from logging import log
 import logging
+from time import sleep
 from typing import List
 import requests
 import urllib3
@@ -10,7 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 misp_api_config = {
-    'host': 'localhost',
+    'host': '192.168.201.162',
     'port': '80',
     'secure': False,
     'auth': 'k2kQW7r2Gtffe1vHwVJYER7pZdmQ4tfcwqb1QIjA'
@@ -68,17 +69,27 @@ def exec_wazuh_api_request(wazuhapiconfig: dict, endpoint: str, verb: str,
                              )
 
 
-def get_last_events(mapiconfig: dict, count: int = 50):
+def get_last_events(mapiconfig: dict, count: int = 50,
+                    typee: str = 'ip-src', category: str = 'Network activity',
+                    org: str = 'SECOPSORG',
+                    ):
 
-    headers = {'X-Result-Count': count.__str__()}
+    body = {
+        'limit': count.__str__(),
+        'type': typee,
+        'category': category,
+        'org': org,
+    }
 
-    request_exec = exec_misp_api_request(endpoint='events', headers=headers,
-                                         verb='GET', mapiconfig=mapiconfig)
+    request_exec = exec_misp_api_request(endpoint='events/restSearch',
+                                         verb='POST', mapiconfig=mapiconfig,
+                                         body=body,
+                                         )
 
     response_body = request_exec.json()
 
-    if type(response_body) is list:
-        return response_body
+    if type(response_body['response']) is list:
+        return response_body['response']
     else:
         return []
 
@@ -119,24 +130,26 @@ def publish_ip_block_from_events(wazuhapiconfig: dict, events: list):
 
     already_published_events.extend(new_events)
 
-    for event in new_events:
-        event_tags = event['EventTag']
+    for new_event in new_events:
+        event = new_event['Event']
+        event_attributes = event['Attribute']
 
-        if event_tags is list:
-            for tag in event_tags:
-                if 'botnet' in tag['Tag']['name'] or 'botnet' in tag['Tag']['type']:
-                    src_ip = ""
+        if type(event_attributes) is list:
+            for attribute in event_attributes:
+                if 'ip-src' in attribute['type']:
+                    src_ip = attribute['value']
+
+                    print('Sending firewall-drop command for IP: {}'.format(src_ip))
+
                     comand_exec_response = exec_wazuh_comand(command_config={
-                        {
-                            "command": "!firewall-drop",
-                            "alert": {
-                                "data": {
-                                    "srcip": src_ip
-                                },
+                        "command": "!firewall-drop",
+                        "alert": {
+                            "data": {
+                                "srcip": src_ip
                             },
-                            "arguments": ["add", "reject"],
-                            "custom": False
-                        }
+                        },
+                        "arguments": ["add", "reject"],
+                        "custom": False
                     },
                         wazuhapiconfig=wazuhapiconfig
                     )
@@ -145,27 +158,31 @@ def publish_ip_block_from_events(wazuhapiconfig: dict, events: list):
 
 
 def main():
-    # events = get_last_events(mapiconfig=misp_api_config)
 
-    wazuh_token = get_wazuh_auth_token(wazuhapiconfig=wazuh_api_config)
+    try:
+        wazuh_token = get_wazuh_auth_token(wazuhapiconfig=wazuh_api_config)
 
-    if wazuh_token == None:
-        logging.error('Could not get auth-token for wazuh-api!')
-        exit(-1)
+        if wazuh_token == None:
+            logging.error('Could not get auth-token for wazuh-api!')
+            exit(-1)
 
-    wazuh_api_config['auth'] = wazuh_token
+        wazuh_api_config['auth'] = wazuh_token
 
-    # publish_ip_block_from_events(
-    #     wazuhapiconfig=wazuh_api_config, events=events
-    # )
+        while(True):
+            events = get_last_events(mapiconfig=misp_api_config)
 
-    # comand_exec_response = exec_wazuh_comand(command_config={
-    #     {"comman": "firewall-drop", "alert": {"data": {"srcip": "1.1.1.5"}, }, }
-    # },
-    #     wazuhapiconfig=wazuh_api_config
-    # )
+            publish_ip_block_from_events(
+                wazuhapiconfig=wazuh_api_config, events=events
+            )
 
-    # print(comand_exec_response)
+            sleep(5)
+
+    except Exception as exception:
+        logging.error(exception)
+
+        sleep(10)
+
+        return main()
 
 
 if __name__ == "__main__":
